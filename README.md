@@ -35,12 +35,15 @@ Or in **.NET Core 1.x**:
       appLifetime.ApplicationStopped.Register(Log.CloseAndFlush);
 ```
 
-## Host tags
+## Optional AddLogDNA()  parameters
 
-Host tags can be applied using the overload of `AddLogDNA`:
+The following optional parameters exist on `AddLogDNA()`:
+
+* `hostName` - used to override the machine's hostname. Defaults to `Environment.MachineName`;
+* `tags` - to be associated with the host.
 
 ```csharp
-loggerfactory.AddLogDNA("ingestion_key", LogLevel.Debug, new [] { "tag1", "tag2" });
+loggerfactory.AddLogDNA("ingestion_key", LogLevel.Debug, hostName: "myhost", tags: new [] { "tag1", "tag2" });
 ```
 
 ## Logging enumerables
@@ -59,3 +62,6 @@ logger.LogInformation("An array", new EnumerableWrapper<string>(array));
 ## Notes
 
 Please remember that indexing of log entries only happens on paid accounts. This means you **won't** see JSON representations of objects or coloured highlighting of `INFO`, `WARN`, etc, if you are using a free account.
+
+Also, please remember LogDNA's [standard service limits for ingestion](https://docs.logdna.com/docs/ingestion#section-service-limits).
+

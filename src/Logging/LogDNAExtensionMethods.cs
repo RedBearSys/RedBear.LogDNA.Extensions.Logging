@@ -11,49 +11,65 @@ namespace RedBear.LogDNA.Extensions.Logging
         public static async Task<ILoggerFactory> AddLogDNAAsync(
             this ILoggerFactory factory,
             string ingestionKey,
-            LogLevel logLevel)
+            LogLevel logLevel,
+            string hostName = null,
+            IEnumerable<string> tags = null)
         {
-            return await factory.AddLogDNAAsync(ingestionKey, logLevel, new List<string>());
+            var client = await SetUpClientAsync(ingestionKey, hostName, tags);
+            factory.AddProvider(new LogDNAProvider(client, logLevel));
+            return factory;
         }
 
-        public static async Task<ILoggerFactory> AddLogDNAAsync(
+        public static ILoggerFactory AddLogDNA(
             this ILoggerFactory factory,
             string ingestionKey,
             LogLevel logLevel,
+            string hostName = null,
+            IEnumerable<string> tags = null)
+        {
+            return factory.AddLogDNAAsync(ingestionKey, logLevel, hostName, tags).Result;
+        }
+
+        public static async Task<ILoggingBuilder> AddLogDNAAsync(
+            this ILoggingBuilder builder,
+            string ingestionKey,
+            LogLevel logLevel,
+            string hostName = null,
+            IEnumerable<string> tags = null)
+        {
+            var client = await SetUpClientAsync(ingestionKey, hostName, tags);
+            builder.AddProvider(new LogDNAProvider(client, logLevel));
+            return builder;
+        }
+
+        public static ILoggingBuilder AddLogDNA(
+            this ILoggingBuilder builder,
+            string ingestionKey,
+            LogLevel logLevel,
+            string hostName = null,
+            IEnumerable<string> tags = null)
+        {
+            return builder.AddLogDNAAsync(ingestionKey, logLevel, hostName, tags).Result;
+        }
+
+        private static async Task<ApiClient> SetUpClientAsync(
+            string ingestionKey,
+            string hostName,
             IEnumerable<string> tags)
         {
-            var config = new Config(ingestionKey) {Tags = tags};
+            if (tags == null)
+                tags = new List<string>();
+
+            var config = new Config(ingestionKey) { Tags = tags };
+
+            if (!string.IsNullOrEmpty(hostName))
+                config.HostName = hostName;
+
             var client = new ApiClient();
 
             await client.ConnectAsync(config);
 
-            factory.AddProvider(new LogDNAProvider(client, logLevel));
-
-            return factory;
-        }
-
-        public static ILoggerFactory AddLogDNA(
-            this ILoggerFactory factory,
-            string ingestionKey,
-            LogLevel logLevel)
-        {
-            return factory.AddLogDNA(ingestionKey, logLevel, new List<string>());
-        }
-
-        public static ILoggerFactory AddLogDNA(
-            this ILoggerFactory factory,
-            string ingestionKey,
-            LogLevel logLevel,
-            IEnumerable<string> tags)
-        {
-            var config = new Config(ingestionKey) { Tags = tags };
-            var client = new ApiClient();
-
-            client.ConnectAsync(config).Wait();
-
-            factory.AddProvider(new LogDNAProvider(client, logLevel));
-
-            return factory;
+            return client;
         }
     }
 }
