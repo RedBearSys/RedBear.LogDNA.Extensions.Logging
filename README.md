@@ -23,19 +23,6 @@ public void ConfigureServices(IServiceCollection services)
   }
 ```
 
-Or in **.NET Core 1.x**:
-
-```csharp
-  public void Configure(IApplicationBuilder app,
-                        IHostingEnvironment env,
-                        ILoggerFactory loggerfactory,
-                        IApplicationLifetime appLifetime)
-  {
-      loggerfactory.AddLogDNA("ingestion_key", LogLevel.Debug);
-      
-      // Ensure any buffered events are sent at shutdown
-      appLifetime.ApplicationStopped.Register(Log.CloseAndFlush);
-```
 
 ## Optional AddLogDNA()  parameters
 
