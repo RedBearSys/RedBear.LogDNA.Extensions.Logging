@@ -8,11 +8,15 @@ namespace RedBear.LogDNA.Extensions.Logging
     {
         private readonly IApiClient _apiClient;
         private readonly LogLevel _logLevel;
+        private readonly IMessageDetailFactory _messageDetailFactory;
+        private readonly string _inclusionRegex;
 
-        public LogDNAProvider(IApiClient apiClient, LogLevel logLevel)
+        public LogDNAProvider(IApiClient apiClient, LogLevel logLevel, IMessageDetailFactory messageDetailFactory, string inclusionRegex = "")
         {
             _apiClient = apiClient;
             _logLevel = logLevel;
+            _messageDetailFactory = messageDetailFactory;
+            _inclusionRegex = inclusionRegex;
         }
 
         public void Dispose()
@@ -26,7 +30,7 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new LogDNALogger(_apiClient, categoryName, _logLevel);
+            return new LogDNALogger(_apiClient, categoryName, _logLevel, _messageDetailFactory, _inclusionRegex);
         }
     }
 }

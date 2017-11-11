@@ -13,10 +13,15 @@ namespace RedBear.LogDNA.Extensions.Logging
             string ingestionKey,
             LogLevel logLevel,
             string hostName = null,
-            IEnumerable<string> tags = null)
+            IEnumerable<string> tags = null,
+            IMessageDetailFactory messageDetailFactory = null,
+            string inclusionRegex = "")
         {
+            if (messageDetailFactory == null)
+                messageDetailFactory = new MessageDetailFactory();
+            
             var client = await SetUpClientAsync(ingestionKey, hostName, tags);
-            factory.AddProvider(new LogDNAProvider(client, logLevel));
+            factory.AddProvider(new LogDNAProvider(client, logLevel, messageDetailFactory, inclusionRegex));
             return factory;
         }
 
@@ -25,9 +30,11 @@ namespace RedBear.LogDNA.Extensions.Logging
             string ingestionKey,
             LogLevel logLevel,
             string hostName = null,
-            IEnumerable<string> tags = null)
+            IEnumerable<string> tags = null,
+            IMessageDetailFactory messageDetailFactory = null,
+            string inclusionRegex = "")
         {
-            return factory.AddLogDNAAsync(ingestionKey, logLevel, hostName, tags).Result;
+            return factory.AddLogDNAAsync(ingestionKey, logLevel, hostName, tags, messageDetailFactory, inclusionRegex).Result;
         }
 
         public static async Task<ILoggingBuilder> AddLogDNAAsync(
@@ -35,10 +42,15 @@ namespace RedBear.LogDNA.Extensions.Logging
             string ingestionKey,
             LogLevel logLevel,
             string hostName = null,
-            IEnumerable<string> tags = null)
+            IEnumerable<string> tags = null,
+            IMessageDetailFactory messageDetailFactory = null,
+            string inclusionRegex = "")
         {
+            if (messageDetailFactory == null)
+                messageDetailFactory = new MessageDetailFactory();
+
             var client = await SetUpClientAsync(ingestionKey, hostName, tags);
-            builder.AddProvider(new LogDNAProvider(client, logLevel));
+            builder.AddProvider(new LogDNAProvider(client, logLevel, messageDetailFactory, inclusionRegex));
             return builder;
         }
 
@@ -47,9 +59,11 @@ namespace RedBear.LogDNA.Extensions.Logging
             string ingestionKey,
             LogLevel logLevel,
             string hostName = null,
-            IEnumerable<string> tags = null)
+            IEnumerable<string> tags = null,
+            IMessageDetailFactory messageDetailFactory = null,
+            string inclusionRegex = "")
         {
-            return builder.AddLogDNAAsync(ingestionKey, logLevel, hostName, tags).Result;
+            return builder.AddLogDNAAsync(ingestionKey, logLevel, hostName, tags, messageDetailFactory, inclusionRegex).Result;
         }
 
         private static async Task<ApiClient> SetUpClientAsync(

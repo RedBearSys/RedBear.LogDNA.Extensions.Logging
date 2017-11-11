@@ -14,12 +14,20 @@ namespace RedBear.LogDNA.Extensions.Logging
         private readonly IApiClient _client;
         private readonly string _loggerName;
         private readonly LogLevel _logLevel;
+        private readonly IMessageDetailFactory _messageDetailFactory;
+        private readonly bool _ignored;
 
-        public LogDNALogger(IApiClient client, string loggerName, LogLevel logLevel)
+        public LogDNALogger(IApiClient client, string loggerName, LogLevel logLevel, IMessageDetailFactory messageDetailFactory, string inclusionRegex = "")
         {
             _client = client;
             _loggerName = loggerName;
             _logLevel = logLevel;
+            _messageDetailFactory = messageDetailFactory;
+
+            if (!string.IsNullOrEmpty(inclusionRegex))
+            {
+                _ignored = !Regex.IsMatch(loggerName, inclusionRegex);
+            }
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
@@ -30,8 +38,11 @@ namespace RedBear.LogDNA.Extensions.Logging
                 var lv = state as FormattedLogValues;
                 var value = lv?.GetFirstValue();
                 var message = state.ToString();
-                var originalMessage = (string)lv.Last().Value;
+                var originalMessage = (string)lv?.Last().Value ?? string.Empty;
 
+                if (value is Wrapper w)
+                    value = w.Value;
+                
                 if (Regex.IsMatch(originalMessage, @"\{[0-9]+\}") && value != null)
                 {
                     var parts = value.GetType().ToString().Split('.');
@@ -39,31 +50,19 @@ namespace RedBear.LogDNA.Extensions.Logging
                         value = null;
                 }
 
-                if (value == null && exception == null)
-                {
-                    LogMessage(_loggerName, logLevel, message);
-                }
-                else if (value == null)
-                {
-                    LogMessage(_loggerName, logLevel, exception.ToString());
-                }
-                else
-                {
-                    if (value is string)
-                    {
-                        LogMessage(_loggerName, logLevel, string.Format(message, value));
-                    }
-                    else
-                    {
-                        LogMessage(_loggerName, logLevel, $"{message} {JsonConvert.SerializeObject(value)}");
-                    }
-                }
+                LogMessage(_loggerName, logLevel, message, value ?? exception);
             }
         }
 
-        private void LogMessage(string logName, LogLevel logLevel, string message)
+        private void LogMessage(string logName, LogLevel logLevel, string message, object value)
         {
-            _client.AddLine(new LogLine(logName, $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} {ConvertLevel(logLevel)} {message}"));
+            var messageDetail = _messageDetailFactory.Create();
+
+            messageDetail.Message = message;
+            messageDetail.Level = ConvertLevel(logLevel);
+            messageDetail.Value = value;
+
+            _client.AddLine(new LogLine(logName, $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} {JsonConvert.SerializeObject(messageDetail)}"));
         }
 
         private string ConvertLevel(LogLevel logLevel)
@@ -91,12 +90,13 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return logLevel >= _logLevel;
+            return !_ignored && logLevel >= _logLevel && logLevel != LogLevel.None;
         }
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            return new LogDNAScope(_client, _loggerName, state?.ToString() ?? "[unnamed]");
+            //return new LogDNAScope(_client, _loggerName, state?.ToString() ?? "[unnamed]", _logLevel);
+            return new LogDNAScope(this, state?.ToString() ?? "[unnamed]");
         }
     }
 }
