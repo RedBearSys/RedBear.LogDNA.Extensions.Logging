@@ -10,7 +10,7 @@ namespace RedBear.LogDNA.Extensions.Logging
         [JsonProperty("message")]
         public string Message { get; set; }
 
-        [JsonProperty("Value", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object Value { get; set; }
     }
 }
