@@ -62,7 +62,8 @@ namespace RedBear.LogDNA.Extensions.Logging
             messageDetail.Level = ConvertLevel(logLevel);
             messageDetail.Value = value;
 
-            _client.AddLine(new LogLine(logName, $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} {JsonConvert.SerializeObject(messageDetail)}"));
+            _client.AddLine(new LogLine(logName,
+                $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} {JsonConvert.SerializeObject(messageDetail, new JsonSerializerSettings {ReferenceLoopHandling = ReferenceLoopHandling.Ignore})}"));
         }
 
         private string ConvertLevel(LogLevel logLevel)
@@ -95,7 +96,6 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            //return new LogDNAScope(_client, _loggerName, state?.ToString() ?? "[unnamed]", _logLevel);
             return new LogDNAScope(this, state?.ToString() ?? "[unnamed]");
         }
     }
