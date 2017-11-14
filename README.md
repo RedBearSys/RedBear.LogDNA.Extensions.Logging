@@ -17,7 +17,7 @@ To add the LogDNA provider in **.NET Core 2.0+**:
 public void ConfigureServices(IServiceCollection services)
   {
       services.AddLogging(loggingBuilder =>
-      	loggingBuilder.AddLogDNA("ingestion_key", LogLevel.Debug));
+      	loggingBuilder.AddLogDNA("ingestion_key"));
       
       // Other services ...
   }
@@ -28,18 +28,46 @@ public void ConfigureServices(IServiceCollection services)
 
 The following optional parameters exist on `AddLogDNA()`:
 
-* `hostName` - used to override the machine's hostname. Defaults to `Environment.MachineName`;
-* `tags` - to be associated with the host;
-* `messageDetailFactory` - see next section;
-* `inclusionRegex` - a case-sensitive regular expression that must be matched in order for log entries to be sent to LogDNA, e.g. `^MyWebApp\..+` .
+* `logLevel` - to set the default log level (default is `Warning`);
+* `options` - to pass in additional configuration options (see next section).
 
 ```csharp
-loggerfactory.AddLogDNA("ingestion_key", LogLevel.Debug, hostName: "myhost", tags: new [] { "tag1", "tag2" });
+loggerfactory.AddLogDNA("ingestion_key", LogLevel.Debug);
 ```
+
+## LogDNAOptions Class
+
+The `AddLogDNA()` method has an override that takes an instance of a `LogDNAOptions` class:
+
+```csharp
+var options = new LogDNAOptions("ingestion_key");
+options.LogLevel = LogLevel.Warning;
+options.HostName = "MyHost";
+options.Tags = new [] { "one", "two" };
+options.MessageDetailFactory = new MessageDetailFactory();
+
+loggerFactory.AddLogDNA(options);
+```
+
+The `LogDNAOptions` class has the following properties:
+
+* `LogLevel` - to set the default log level (default is `Warning`);
+* `HostName` - used to override the machine's hostname. Defaults to `Environment.MachineName`;
+* `Tags` - to be associated with the host;
+* `MessageDetailFactory` - see next section.
+
+Additionally, different log levels can be set for different namespaces using the `.AddNamespace(namespace, level)` method:
+
+```csharp
+// Would apply to all log names starting with "MyApp." - e.g. MyApp.Services, MyApp.Models, etc
+options.AddNamespace("MyApp.", LogLevel.Debug);
+```
+
+It is recommended to set the default log level (`options.LogLevel`) to `Warning` and then set a lower log level for your own code using `AddNamespace()`.
 
 ## MessageDetail class and IMessageDetailFactory
 
-The `MessageDetail` class is serialised to create a JSON message for LogDNA to ingest:
+A `MessageDetail` class is serialised to create a JSON message for LogDNA to ingest:
 
 ```json
 {

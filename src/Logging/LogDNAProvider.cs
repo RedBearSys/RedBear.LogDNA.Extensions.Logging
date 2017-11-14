@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 
 namespace RedBear.LogDNA.Extensions.Logging
@@ -7,16 +8,12 @@ namespace RedBear.LogDNA.Extensions.Logging
     public class LogDNAProvider : ILoggerProvider
     {
         private readonly IApiClient _apiClient;
-        private readonly LogLevel _logLevel;
-        private readonly IMessageDetailFactory _messageDetailFactory;
-        private readonly string _inclusionRegex;
+        private readonly LogDNAOptions _options;
 
-        public LogDNAProvider(IApiClient apiClient, LogLevel logLevel, IMessageDetailFactory messageDetailFactory, string inclusionRegex = "")
+        public LogDNAProvider(IApiClient apiClient, LogDNAOptions options)
         {
-            _apiClient = apiClient;
-            _logLevel = logLevel;
-            _messageDetailFactory = messageDetailFactory;
-            _inclusionRegex = inclusionRegex;
+            _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public void Dispose()
@@ -30,7 +27,7 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new LogDNALogger(_apiClient, categoryName, _logLevel, _messageDetailFactory, _inclusionRegex);
+            return new LogDNALogger(categoryName, _apiClient, _options);
         }
     }
 }

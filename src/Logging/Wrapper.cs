@@ -8,5 +8,10 @@
         }
 
         public object Value { get; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 }

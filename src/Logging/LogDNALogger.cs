@@ -12,29 +12,20 @@ namespace RedBear.LogDNA.Extensions.Logging
     public class LogDNALogger : ILogger
     {
         private readonly IApiClient _client;
+        private readonly LogDNAOptions _options;
         private readonly string _loggerName;
-        private readonly LogLevel _logLevel;
-        private readonly IMessageDetailFactory _messageDetailFactory;
-        private readonly bool _ignored;
 
-        public LogDNALogger(IApiClient client, string loggerName, LogLevel logLevel, IMessageDetailFactory messageDetailFactory, string inclusionRegex = "")
+        public LogDNALogger(string loggerName, IApiClient client, LogDNAOptions options)
         {
-            _client = client;
-            _loggerName = loggerName;
-            _logLevel = logLevel;
-            _messageDetailFactory = messageDetailFactory;
-
-            if (!string.IsNullOrEmpty(inclusionRegex))
-            {
-                _ignored = !Regex.IsMatch(loggerName, inclusionRegex);
-            }
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _loggerName = loggerName ?? "Unknown";
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             if (IsEnabled(logLevel))
             {
-
                 var lv = state as FormattedLogValues;
                 var value = lv?.GetFirstValue();
                 var message = state.ToString();
@@ -56,7 +47,7 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         private void LogMessage(string logName, LogLevel logLevel, string message, object value)
         {
-            var messageDetail = _messageDetailFactory.Create();
+            var messageDetail = _options.MessageDetailFactory.Create();
 
             messageDetail.Message = message;
             messageDetail.Level = ConvertLevel(logLevel);
@@ -91,7 +82,15 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return !_ignored && logLevel >= _logLevel && logLevel != LogLevel.None;
+            var match = _options.Namespaces.Where(x => _loggerName.StartsWith(x.Namespace)).OrderByDescending(x => x.Namespace)
+                .FirstOrDefault();
+
+            if (match != null)
+            {
+                return logLevel >= match.LogLevel && logLevel != LogLevel.None;
+            }
+
+            return logLevel >= _options.LogLevel && logLevel != LogLevel.None;
         }
 
         public IDisposable BeginScope<TState>(TState state)
