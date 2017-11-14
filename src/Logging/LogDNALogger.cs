@@ -2,9 +2,11 @@
 using Microsoft.Extensions.Logging.Internal;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace RedBear.LogDNA.Extensions.Logging
 {
@@ -14,6 +16,8 @@ namespace RedBear.LogDNA.Extensions.Logging
         private readonly IApiClient _client;
         private readonly LogDNAOptions _options;
         private readonly string _loggerName;
+
+        private static readonly AsyncLocal<Stack<string>> Scopes = new AsyncLocal<Stack<string>>();
 
         public LogDNALogger(string loggerName, IApiClient client, LogDNAOptions options)
         {
@@ -52,6 +56,7 @@ namespace RedBear.LogDNA.Extensions.Logging
             messageDetail.Message = message;
             messageDetail.Level = ConvertLevel(logLevel);
             messageDetail.Value = value;
+            messageDetail.Scope = Scopes.Value?.Peek();
 
             _client.AddLine(new LogLine(logName,
                 $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} {JsonConvert.SerializeObject(messageDetail, new JsonSerializerSettings {ReferenceLoopHandling = ReferenceLoopHandling.Ignore})}"));
@@ -96,6 +101,20 @@ namespace RedBear.LogDNA.Extensions.Logging
         public IDisposable BeginScope<TState>(TState state)
         {
             return new LogDNAScope(this, state?.ToString() ?? "[unnamed]");
+        }
+
+        public void PushScope(string scope)
+        {
+            if (Scopes.Value == null) Scopes.Value = new Stack<string>();
+            Scopes.Value.Push(scope);
+            this.LogDebug($"--BEGIN SCOPE: {scope}--");
+        }
+
+        public void PopScope()
+        {
+            var scope = Scopes.Value.Peek();
+            this.LogDebug($"--END SCOPE: {scope}--");
+            Scopes.Value.Pop();
         }
     }
 }

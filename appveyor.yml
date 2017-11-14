@@ -18,7 +18,7 @@ build_script:
 test: off
 # xUnit execution
 #test_script:
-#- dotnet test "src\UnitTests\UnitTests.csproj" -c Release --no-build
+- dotnet test "src\UnitTests\UnitTests.csproj" -c Release --no-build
 artifacts:
 - path: '**\*.nupkg'
 deploy:

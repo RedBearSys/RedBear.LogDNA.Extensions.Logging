@@ -12,5 +12,8 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object Value { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string Scope { get; set; }
     }
 }
