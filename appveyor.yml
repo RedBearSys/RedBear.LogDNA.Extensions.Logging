@@ -17,7 +17,7 @@ build_script:
 # turning default test off since it doesn't handle .NET Core
 test: off
 # xUnit execution
-#test_script:
+test_script:
 - dotnet test "src\UnitTests\UnitTests.csproj" -c Release --no-build
 artifacts:
 - path: '**\*.nupkg'
