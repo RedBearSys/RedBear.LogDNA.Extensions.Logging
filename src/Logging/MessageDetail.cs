@@ -4,6 +4,8 @@ namespace RedBear.LogDNA.Extensions.Logging
 {
     public class MessageDetail
     {
+        private object _value;
+
         [JsonProperty("level")]
         public string Level { get; set; }
 
@@ -11,7 +13,18 @@ namespace RedBear.LogDNA.Extensions.Logging
         public string Message { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public object Value { get; set; }
+        public object Value
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                ValueJson = value != null ? $"{JsonConvert.SerializeObject(Value)} " : null;
+            }
+        }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string ValueJson { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Scope { get; set; }
