@@ -2,21 +2,13 @@
 
 namespace RedBear.LogDNA.Extensions.Logging
 {
-    public class Wrapper
+    public class JsonWrapper : Wrapper
     {
-        public Wrapper(object value)
+        public JsonWrapper(object value) : base(value)
         {
-            Value = value;
         }
-
-        public object Value { get; }
 
         public override string ToString()
-        {
-            return Value.ToString();
-        }
-
-        public string ToJsonString()
         {
             return $"{JsonConvert.SerializeObject(Value)} .";
         }

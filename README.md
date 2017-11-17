@@ -107,6 +107,14 @@ logger.LogInformation("An array", new Wrapper(array));
 
 The logger will *unwrap* the object prior to serialisation.
 
+If you want the logged **message** to include the JSON representation of the object (as opposed to the object's `.ToString()` output), use the `JsonWrapper` :
+
+```csharp
+var value = new KeyValuePair<string, string>("Foo", "Bar");
+var wrapper = new JsonWrapper(value);
+logger.LogInformation("My JSON: {0}", wrapper);
+```
+
 ## Notes
 
 Please remember that indexing of log entries only happens on paid accounts. This means you **won't** see JSON representations of objects or coloured highlighting of `INFO`, `WARN`, etc, if you are using a free account.
