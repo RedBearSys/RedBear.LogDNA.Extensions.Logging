@@ -19,7 +19,9 @@ namespace RedBear.LogDNA.Extensions.Logging
             set
             {
                 _value = value;
-                ValueJson = value != null ? $"{JsonConvert.SerializeObject(Value)} " : null;
+                ValueJson = value != null
+                    ? $"{JsonConvert.SerializeObject(Value, new JsonSerializerSettings {ReferenceLoopHandling = ReferenceLoopHandling.Ignore})} "
+                    : null;
             }
         }
 
