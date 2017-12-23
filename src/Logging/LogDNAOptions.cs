@@ -25,11 +25,12 @@ namespace RedBear.LogDNA.Extensions.Logging
         public string HostName { get; set; } = Environment.MachineName;
         public List<string> Tags { get; } = new List<string>();
         public IMessageDetailFactory MessageDetailFactory { get; set; } = new MessageDetailFactory();
+        public bool LogInternalsToConsole { get; set; }
 
         public LogDNAOptions AddNamespace(string nameSpace, LogLevel logLevel)
         {
             Namespaces.Add(new NamespaceLogLevel(
-                nameSpace ?? throw new ArgumentNullException(nameof(nameSpace)), 
+                nameSpace ?? throw new ArgumentNullException(nameof(nameSpace)),
                 logLevel));
             return this;
         }
