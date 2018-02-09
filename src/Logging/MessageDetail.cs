@@ -1,10 +1,14 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace RedBear.LogDNA.Extensions.Logging
 {
     public class MessageDetail
     {
         private object _value;
+
+        [JsonExtensionData]
+        private readonly Dictionary<string, object> _properties = new Dictionary<string, object>();
 
         [JsonProperty("level")]
         public string Level { get; set; }
@@ -30,5 +34,30 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Scope { get; set; }
+
+        [JsonIgnore]
+        public IEnumerable<KeyValuePair<string, object>> Properties
+        {
+            get => _properties;
+            set
+            {
+               _properties.Clear();
+
+                foreach (var kvp in value)
+                {
+                    _properties.Add(kvp.Key, kvp.Value);
+                }
+            }
+        }
+
+        public void AddOrUpdateProperty(string key, object value)
+        {
+            if (_properties.ContainsKey(key))
+            {
+                _properties.Remove(key);
+            }
+
+            _properties.Add(key, value);
+        }
     }
 }
