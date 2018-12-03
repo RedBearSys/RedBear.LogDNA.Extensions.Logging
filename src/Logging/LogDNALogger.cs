@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace RedBear.LogDNA.Extensions.Logging
 {
@@ -19,6 +21,7 @@ namespace RedBear.LogDNA.Extensions.Logging
         private readonly string _loggerName;
 
         private static readonly AsyncLocal<Stack<string>> Scopes = new AsyncLocal<Stack<string>>();
+        private const int MaxMessageSize = 16384; // 16KB
 
         public LogDNALogger(string loggerName, IApiClient client, LogDNAOptions options)
         {
@@ -55,15 +58,39 @@ namespace RedBear.LogDNA.Extensions.Logging
 
         private void LogMessage(string logName, LogLevel logLevel, string message, object value)
         {
+            var valueAsString = JsonConvert.SerializeObject(value,
+                new JsonSerializerSettings {ReferenceLoopHandling = ReferenceLoopHandling.Ignore});
             var messageDetail = _options.MessageDetailFactory.Create();
 
             messageDetail.Message = message;
             messageDetail.Level = ConvertLevel(logLevel);
-            messageDetail.Value = value;
+            messageDetail.Value = new JRaw(valueAsString);
             messageDetail.Scope = Scopes.Value?.Peek();
 
-            _client.AddLine(new LogLine(logName,
-                $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} {JsonConvert.SerializeObject(messageDetail, new JsonSerializerSettings {ReferenceLoopHandling = ReferenceLoopHandling.Ignore})}"));
+            int length;
+            string logLine;
+            var now = DateTime.UtcNow;
+
+            do
+            {
+                logLine =
+                    $"{now:yyyy-MM-dd HH:mm:ss} {JsonConvert.SerializeObject(messageDetail, new JsonSerializerSettings {ReferenceLoopHandling = ReferenceLoopHandling.Ignore})}";
+
+                length = Encoding.UTF8.GetByteCount(logLine);
+
+                if (length > MaxMessageSize)
+                {
+                    valueAsString = valueAsString.Substring(0, valueAsString.Length - 2);
+
+                    // Deliberately not a JRaw at this point as we're starting to trim
+                    // bits of the JSON string to make things fit into the 16KB limit.
+                    // i.e. it's not valid JSON now.
+                    messageDetail.Value = valueAsString;
+                }
+
+            } while (length > MaxMessageSize && valueAsString.Length > 0);
+
+            _client.AddLine(new LogLine(logName, logLine));
         }
 
         private string ConvertLevel(LogLevel logLevel)
