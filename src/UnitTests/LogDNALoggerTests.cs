@@ -198,6 +198,51 @@ namespace UnitTests
             Assert.False(logger.IsEnabled(LogLevel.None));
         }
 
+        [Fact]
+        public void LogException()
+        {
+            var options = new LogDNAOptions("key", LogLevel.Trace)
+            {
+                MaxInnerExceptionDepth = 3
+            };
+
+            var mockClient = new Mock<IApiClient>();
+            mockClient.Setup(x => x.AddLine(It.IsAny<LogLine>())).Callback<LogLine>(line =>
+            {
+                Assert.Contains("Level 17", line.Content);
+                Assert.DoesNotContain("Level 16", line.Content);
+            });
+
+            var client = mockClient.Object;
+
+            var logger = new LogDNALogger("name", client, options);
+
+            var ex = CreateTwentyLevelException();
+
+            logger.LogError(ex, ex.Message);
+        }
+
+        Exception CreateTwentyLevelException(Exception inner = null, int exceptionCount = 0)
+        {
+            var result = new Exception($"Level {exceptionCount}", inner);
+
+            exceptionCount++;
+
+            if (exceptionCount < 20)
+                result = CreateTwentyLevelException(result, exceptionCount);
+
+            try
+            {
+                throw result;
+            }
+            catch (Exception ex)
+            {
+                result = ex;
+            }
+
+            return result;
+        }
+
         private MessageDetail GetDetail(string content)
         {
             return JsonConvert.DeserializeObject<MessageDetail>(content.Substring(content.IndexOf("{", StringComparison.Ordinal)));

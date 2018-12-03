@@ -24,6 +24,7 @@ namespace RedBear.LogDNA.Extensions.Logging
         public List<NamespaceLogLevel> Namespaces { get; } = new List<NamespaceLogLevel>();
         public string HostName { get; set; } = Environment.MachineName;
         public List<string> Tags { get; } = new List<string>();
+        public int MaxInnerExceptionDepth { get; set; } = 3;
         public IMessageDetailFactory MessageDetailFactory { get; set; } = new MessageDetailFactory();
         public bool LogInternalsToConsole { get; set; }
 

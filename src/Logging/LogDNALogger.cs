@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -44,6 +45,9 @@ namespace RedBear.LogDNA.Extensions.Logging
                     if (parts.Length == 2 && parts[0] == "System")
                         value = null;
                 }
+
+                if (exception != null)
+                    PruneExceptionDepth(exception);
 
                 LogMessage(_loggerName, logLevel, message, value ?? exception);
             }
@@ -115,6 +119,25 @@ namespace RedBear.LogDNA.Extensions.Logging
             var scope = Scopes.Value.Peek();
             this.LogDebug($"--END SCOPE: {scope}--");
             Scopes.Value.Pop();
+        }
+
+        private void PruneExceptionDepth(Exception ex)
+        {
+            var inner = ex;
+            var depth = 1;
+
+            do
+            {
+                depth++;
+                inner = inner.InnerException;
+            } while (inner != null && depth < _options.MaxInnerExceptionDepth);
+
+            if (inner != null)
+            {
+                // Remove
+                var field = typeof(Exception).GetField("_innerException", BindingFlags.Instance | BindingFlags.NonPublic);
+                field?.SetValue(inner, null);
+            }
         }
     }
 }
