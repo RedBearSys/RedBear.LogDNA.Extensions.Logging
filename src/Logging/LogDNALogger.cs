@@ -65,7 +65,9 @@ namespace RedBear.LogDNA.Extensions.Logging
             messageDetail.Message = message;
             messageDetail.Level = ConvertLevel(logLevel);
             messageDetail.Value = new JRaw(valueAsString);
-            messageDetail.Scope = Scopes.Value?.Peek();
+
+
+            messageDetail.Scope = Scopes.Value?.Count > 0 ? Scopes.Value?.Peek() : messageDetail.Scope;
 
             int length;
             string logLine;
