@@ -3,12 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Red Bear Systems Limited</Authors>
-    <Company>Red Bear Systems Limited</Company>
     <Description>LogDNA provider for Microsoft.Extensions.Logging written in .NET Standard 2.0.</Description>
     <PackageProjectUrl>https://github.com/RedBearSys/RedBear.LogDNA.Extensions.Logging</PackageProjectUrl>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
-    <PackageIconUrl>https://avatars3.githubusercontent.com/u/17988342?v=3&amp;amp;amp;s=200</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>
