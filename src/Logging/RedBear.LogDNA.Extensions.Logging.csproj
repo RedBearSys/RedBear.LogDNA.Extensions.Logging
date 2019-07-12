@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
-    <PackageReference Include="RedBear.LogDNA" Version="2.1.1780" />
+    <PackageReference Include="RedBear.LogDNA" Version="2.1.2887" />
   </ItemGroup>
 
 </Project>
