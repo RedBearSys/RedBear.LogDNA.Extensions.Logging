@@ -34,8 +34,8 @@ namespace RedBear.LogDNA.Extensions.Logging
         {
             if (IsEnabled(logLevel))
             {
-                var lv = state as FormattedLogValues;
-                var value = lv?.GetFirstValue();
+                var lv = state as IEnumerable<KeyValuePair<string, object>>;
+                var value = GetFirstValue(lv);
                 var message = state.ToString();
                 var originalMessage = (string)lv?.Last().Value ?? string.Empty;
 
@@ -54,6 +54,13 @@ namespace RedBear.LogDNA.Extensions.Logging
 
                 LogMessage(_loggerName, logLevel, message, value ?? exception);
             }
+        }
+        
+        public static object GetFirstValue(IEnumerable<KeyValuePair<string, object>> lv)
+        {
+            var field = lv.GetType().GetField("_values", BindingFlags.NonPublic | BindingFlags.Instance);
+            var values = (object[])field.GetValue(lv);
+            return values?.FirstOrDefault();
         }
 
         private void LogMessage(string logName, LogLevel logLevel, string message, object value)
