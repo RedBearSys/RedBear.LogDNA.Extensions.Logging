@@ -5,7 +5,6 @@ using RedBear.LogDNA.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.Logging.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;

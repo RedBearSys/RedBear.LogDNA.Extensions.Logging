@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging.Internal;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 
 namespace RedBear.LogDNA.Extensions.Logging
