@@ -9,7 +9,7 @@ namespace RedBear.LogDNA.Extensions.Logging
         public static object GetFirstValue(this FormattedLogValues lv)
         {
             var field = lv.GetType().GetField("_values", BindingFlags.NonPublic | BindingFlags.Instance);
-            var values = (object[])field.GetValue(lv);
+            var values = (object[])field?.GetValue(lv);
             return values?.FirstOrDefault();
         }
     }
